@@ -67,6 +67,7 @@ export function VendorApplyPage() {
       village: "",
       isApproved: false,
       isVerified: false,
+      status: "pending",
     };
 
     setVendors([...vendors, newVendor]);

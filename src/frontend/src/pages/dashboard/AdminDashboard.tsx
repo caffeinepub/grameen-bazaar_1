@@ -25,7 +25,9 @@ import {
   BadgeCheck,
   Ban,
   ChevronDown,
+  ClipboardList,
   Package,
+  RefreshCw,
   ShoppingBag,
   Users,
 } from "lucide-react";
@@ -48,8 +50,13 @@ export function AdminDashboard() {
     orders,
     approveVendor,
     suspendVendor,
+    rejectVendor,
     updateOrderStatus,
   } = useApp();
+
+  const pendingVendors = vendors.filter((v) => v.status === "pending");
+  const approvedVendors = vendors.filter((v) => v.status === "approved");
+  const suspendedVendors = vendors.filter((v) => v.status === "suspended");
 
   const stats = [
     {
@@ -112,6 +119,11 @@ export function AdminDashboard() {
             >
               <Users className="w-4 h-4" />
               {t.admin_vendors}
+              {pendingVendors.length > 0 && (
+                <span className="ml-1.5 text-xs bg-amber-100 text-amber-700 rounded-full px-1.5 py-0.5 font-semibold">
+                  {pendingVendors.length}
+                </span>
+              )}
             </TabsTrigger>
             <TabsTrigger
               value="orders"
@@ -134,82 +146,202 @@ export function AdminDashboard() {
           {/* Vendors Tab */}
           <TabsContent value="vendors" className="space-y-4">
             <h2 className="font-semibold">{t.admin_vendors}</h2>
-            <div
-              className="rounded-xl border border-border overflow-hidden bg-card"
-              data-ocid="admin-dashboard.vendors.table"
-            >
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/50">
-                    <TableHead>{lang === "hi" ? "दुकान" : "Shop"}</TableHead>
-                    <TableHead>{lang === "hi" ? "क्षेत्र" : "Region"}</TableHead>
-                    <TableHead>{lang === "hi" ? "स्थिति" : "Status"}</TableHead>
-                    <TableHead>
-                      {lang === "hi" ? "कार्रवाई" : "Actions"}
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {vendors.map((vendor, idx) => (
-                    <TableRow
-                      key={vendor.id}
-                      data-ocid={`admin-dashboard.vendor.row.${idx + 1}`}
-                    >
-                      <TableCell>
-                        <div>
-                          <p className="font-semibold text-sm">
-                            {lang === "hi"
-                              ? vendor.shopNameHi
-                              : vendor.shopNameEn}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {vendor.phone}
-                          </p>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {vendor.district}, {vendor.state}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Badge
-                            variant="outline"
-                            className={
-                              vendor.isApproved
-                                ? "bg-green-50 text-green-700 border-green-200"
-                                : "bg-red-50 text-red-700 border-red-200"
-                            }
+            <Tabs defaultValue="pending" className="space-y-4">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger
+                  value="pending"
+                  className="gap-1.5 text-xs sm:text-sm"
+                  data-ocid="admin-dashboard.pending-vendors.tab"
+                >
+                  <ClipboardList className="w-3.5 h-3.5" />
+                  {lang === "hi" ? "प्रतीक्षारत" : "Pending"}
+                  {pendingVendors.length > 0 && (
+                    <span className="ml-1 text-xs bg-amber-100 text-amber-700 rounded-full px-1.5 py-0.5 font-semibold">
+                      {pendingVendors.length}
+                    </span>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger
+                  value="approved"
+                  className="gap-1.5 text-xs sm:text-sm"
+                  data-ocid="admin-dashboard.approved-vendors.tab"
+                >
+                  <BadgeCheck className="w-3.5 h-3.5" />
+                  {lang === "hi" ? "स्वीकृत" : "Approved"}
+                </TabsTrigger>
+                <TabsTrigger
+                  value="suspended"
+                  className="gap-1.5 text-xs sm:text-sm"
+                  data-ocid="admin-dashboard.suspended-vendors.tab"
+                >
+                  <Ban className="w-3.5 h-3.5" />
+                  {lang === "hi" ? "निलंबित" : "Suspended"}
+                </TabsTrigger>
+              </TabsList>
+
+              {/* Pending Sub-tab */}
+              <TabsContent value="pending" className="space-y-3">
+                {pendingVendors.length === 0 ? (
+                  <div
+                    className="flex flex-col items-center justify-center py-16 text-center rounded-xl border border-border bg-card"
+                    data-ocid="admin-dashboard.pending-vendors.empty_state"
+                  >
+                    <ClipboardList className="w-10 h-10 text-muted-foreground/40 mb-3" />
+                    <p className="font-semibold text-sm">
+                      {lang === "hi"
+                        ? "कोई लंबित आवेदन नहीं"
+                        : "No pending applications"}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {lang === "hi"
+                        ? "नए विक्रेता आवेदन यहाँ दिखेंगे"
+                        : "New vendor applications will appear here"}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-border overflow-hidden bg-card">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-amber-50/50">
+                          <TableHead>
+                            {lang === "hi" ? "दुकान" : "Shop"}
+                          </TableHead>
+                          <TableHead>
+                            {lang === "hi" ? "क्षेत्र" : "Region"}
+                          </TableHead>
+                          <TableHead>
+                            {lang === "hi" ? "फ़ोन" : "Phone"}
+                          </TableHead>
+                          <TableHead>
+                            {lang === "hi" ? "कार्रवाई" : "Actions"}
+                          </TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {pendingVendors.map((vendor, idx) => (
+                          <TableRow
+                            key={vendor.id}
+                            data-ocid={`admin-dashboard.vendor.row.${idx + 1}`}
                           >
-                            {vendor.isApproved
-                              ? lang === "hi"
-                                ? "स्वीकृत"
-                                : "Approved"
-                              : lang === "hi"
-                                ? "निलंबित"
-                                : "Suspended"}
-                          </Badge>
-                          {vendor.isVerified && (
-                            <BadgeCheck className="w-4 h-4 text-primary" />
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          {!vendor.isApproved ? (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="h-7 text-xs gap-1 text-green-600 border-green-300 hover:bg-green-50"
-                              onClick={() => {
-                                approveVendor(vendor.id);
-                                toast.success(`${vendor.shopNameEn} approved!`);
-                              }}
-                              data-ocid={`admin-dashboard.vendor.approve_button.${idx + 1}`}
-                            >
-                              <BadgeCheck className="w-3 h-3" />
-                              {t.admin_approve}
-                            </Button>
-                          ) : (
+                            <TableCell>
+                              <div>
+                                <p className="font-semibold text-sm">
+                                  {lang === "hi"
+                                    ? vendor.shopNameHi
+                                    : vendor.shopNameEn}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {lang === "hi"
+                                    ? vendor.shopNameEn
+                                    : vendor.shopNameHi}
+                                </p>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-sm text-muted-foreground">
+                              {vendor.district}, {vendor.state}
+                            </TableCell>
+                            <TableCell className="text-sm text-muted-foreground">
+                              {vendor.phone}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-7 text-xs gap-1 text-green-600 border-green-300 hover:bg-green-50"
+                                  onClick={() => {
+                                    approveVendor(vendor.id);
+                                    toast.success(
+                                      lang === "hi"
+                                        ? "विक्रेता स्वीकृत!"
+                                        : "Vendor approved!",
+                                    );
+                                  }}
+                                  data-ocid={`admin-dashboard.vendor.approve_button.${idx + 1}`}
+                                >
+                                  <BadgeCheck className="w-3 h-3" />
+                                  {lang === "hi" ? "स्वीकृत करें" : "Approve"}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-7 text-xs gap-1 text-destructive border-destructive/30 hover:bg-destructive/10"
+                                  onClick={() => {
+                                    rejectVendor(vendor.id);
+                                    toast.success(
+                                      lang === "hi"
+                                        ? "आवेदन अस्वीकृत।"
+                                        : "Application rejected.",
+                                    );
+                                  }}
+                                  data-ocid={`admin-dashboard.vendor.reject_button.${idx + 1}`}
+                                >
+                                  <Ban className="w-3 h-3" />
+                                  {lang === "hi" ? "अस्वीकार" : "Reject"}
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </TabsContent>
+
+              {/* Approved Sub-tab */}
+              <TabsContent value="approved" className="space-y-3">
+                <div className="rounded-xl border border-border overflow-hidden bg-card">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/50">
+                        <TableHead>{lang === "hi" ? "दुकान" : "Shop"}</TableHead>
+                        <TableHead>
+                          {lang === "hi" ? "क्षेत्र" : "Region"}
+                        </TableHead>
+                        <TableHead>
+                          {lang === "hi" ? "स्थिति" : "Status"}
+                        </TableHead>
+                        <TableHead>
+                          {lang === "hi" ? "कार्रवाई" : "Actions"}
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {approvedVendors.map((vendor, idx) => (
+                        <TableRow
+                          key={vendor.id}
+                          data-ocid={`admin-dashboard.vendor.row.${idx + 1}`}
+                        >
+                          <TableCell>
+                            <div>
+                              <p className="font-semibold text-sm">
+                                {lang === "hi"
+                                  ? vendor.shopNameHi
+                                  : vendor.shopNameEn}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {vendor.phone}
+                              </p>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {vendor.district}, {vendor.state}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Badge
+                                variant="outline"
+                                className="bg-green-50 text-green-700 border-green-200"
+                              >
+                                {lang === "hi" ? "स्वीकृत" : "Approved"}
+                              </Badge>
+                              {vendor.isVerified && (
+                                <BadgeCheck className="w-4 h-4 text-primary" />
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
                             <Button
                               size="sm"
                               variant="outline"
@@ -225,14 +357,100 @@ export function AdminDashboard() {
                               <Ban className="w-3 h-3" />
                               {t.admin_suspend}
                             </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </TabsContent>
+
+              {/* Suspended Sub-tab */}
+              <TabsContent value="suspended" className="space-y-3">
+                {suspendedVendors.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-16 text-center rounded-xl border border-border bg-card">
+                    <Ban className="w-10 h-10 text-muted-foreground/40 mb-3" />
+                    <p className="font-semibold text-sm">
+                      {lang === "hi"
+                        ? "कोई निलंबित विक्रेता नहीं"
+                        : "No suspended vendors"}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-border overflow-hidden bg-card">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-muted/50">
+                          <TableHead>
+                            {lang === "hi" ? "दुकान" : "Shop"}
+                          </TableHead>
+                          <TableHead>
+                            {lang === "hi" ? "क्षेत्र" : "Region"}
+                          </TableHead>
+                          <TableHead>
+                            {lang === "hi" ? "स्थिति" : "Status"}
+                          </TableHead>
+                          <TableHead>
+                            {lang === "hi" ? "कार्रवाई" : "Actions"}
+                          </TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {suspendedVendors.map((vendor, idx) => (
+                          <TableRow
+                            key={vendor.id}
+                            data-ocid={`admin-dashboard.vendor.row.${idx + 1}`}
+                          >
+                            <TableCell>
+                              <div>
+                                <p className="font-semibold text-sm">
+                                  {lang === "hi"
+                                    ? vendor.shopNameHi
+                                    : vendor.shopNameEn}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {vendor.phone}
+                                </p>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-sm text-muted-foreground">
+                              {vendor.district}, {vendor.state}
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                variant="outline"
+                                className="bg-red-50 text-red-700 border-red-200"
+                              >
+                                {lang === "hi" ? "निलंबित" : "Suspended"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 text-xs gap-1 text-green-600 border-green-300 hover:bg-green-50"
+                                onClick={() => {
+                                  approveVendor(vendor.id);
+                                  toast.success(
+                                    lang === "hi"
+                                      ? "विक्रेता पुनः सक्रिय!"
+                                      : `${vendor.shopNameEn} reactivated!`,
+                                  );
+                                }}
+                                data-ocid={`admin-dashboard.vendor.reactivate_button.${idx + 1}`}
+                              >
+                                <RefreshCw className="w-3 h-3" />
+                                {lang === "hi" ? "पुनः सक्रिय" : "Re-activate"}
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
           {/* Orders Tab */}

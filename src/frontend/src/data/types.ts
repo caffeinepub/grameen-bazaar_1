@@ -28,6 +28,7 @@ export interface Vendor {
   village: string;
   isApproved: boolean;
   isVerified: boolean;
+  status: "pending" | "approved" | "suspended";
 }
 
 export interface Order {

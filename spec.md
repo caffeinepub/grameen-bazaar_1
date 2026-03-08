@@ -2,38 +2,37 @@
 
 ## Current State
 
-A full-stack hyperlocal marketplace for rural & Tier-3 India with:
-- Product browsing with category filters (Vegetables, Grains, Dairy, Fruits, Spices, Handicrafts, Clothing)
-- Vendor and buyer dashboards, admin panel
-- Cart, checkout with Stripe + COD
-- Bilingual EN/Hindi toggle
-- Vendor application form (VendorApplyPage)
-- Regional filtering by state/district
-- Ratings & reviews
+- Vendor application form exists at `/vendor/apply` (VendorApplyPage). On submit it adds a vendor with `isApproved: false` and `isVerified: false`.
+- Admin Dashboard has a Vendors tab listing all vendors with Approve/Suspend toggle buttons but no distinction between newly submitted (pending) and already-reviewed vendors.
+- `Vendor` type uses two booleans: `isApproved` and `isVerified`.
+- `approveVendor` sets `isApproved: true`; `suspendVendor` sets `isApproved: false`.
 
 ## Requested Changes (Diff)
 
 ### Add
-- **Grocery category** in CATEGORIES list (emoji 🛒, id "Grocery", EN "Grocery Essentials", HI "किराना सामान")
-- **Grocery sample products**: atta, mustard oil, dal, sugar, salt, tea, soap, biscuits -- essential daily-use items mapped to the "Grocery" category with village vendors
-- **Grocery dedicated page** (`/grocery`) -- quick-commerce style layout with subcategory tabs (Staples / Oils & Ghee / Beverages / Personal Care), product grid with quick-add to cart, "Deliver in 2 hrs" badge for in-stock items
-- **Grocery link** in Navbar and LandingPage hero categories section
-- **GroceryPage route** registered in App.tsx
+- A `status` field on `Vendor`: `"pending" | "approved" | "suspended"`. Pending = newly submitted application awaiting admin review.
+- A "Pending" sub-tab inside the Admin Vendors section that lists only vendors with `status === "pending"`.
+- A `rejectVendor` action in AppContext that sets status to `"suspended"`.
+- One-click Approve and Reject buttons on each pending vendor row in the Pending tab.
+- A count badge on the Pending tab label showing how many are waiting.
+- Mock vendors in `mockData.ts` updated so some have status `"pending"` to demo the flow.
 
 ### Modify
-- `mockData.ts` -- add Grocery to CATEGORIES array and add 6-8 grocery products
-- `App.tsx` -- register `/grocery` route
-- `Navbar` -- add Grocery nav link
-- `LandingPage` -- add Grocery category card in the categories showcase section
+- `Vendor` type: replace/augment `isApproved: boolean` with `status: "pending" | "approved" | "suspended"`. Keep `isApproved` as a computed alias or migrate all references.
+- `approveVendor` in AppContext: sets `status = "approved"`.
+- `suspendVendor` in AppContext: sets `status = "suspended"`.
+- `VendorApplyPage`: new vendor submitted with `status: "pending"` instead of `isApproved: false`.
+- Admin Vendors tab: split into sub-tabs -- Pending, Approved, Suspended. Default to Pending if there are pending items.
+- Admin stat card for vendors: unchanged (total count).
 
 ### Remove
-- Nothing removed
+- Nothing removed externally. Internal `isApproved` boolean usage migrated to `status` field.
 
 ## Implementation Plan
 
-1. Add "Grocery" entry to CATEGORIES in `mockData.ts`
-2. Add 6-8 grocery products (atta, mustard oil, toor dal, sugar, salt, tea, soap, biscuits) in PRODUCTS array in `mockData.ts`, with a new vendor ("Kirana General Store") or existing vendors
-3. Create `src/pages/GroceryPage.tsx` -- subcategory tabs (Staples, Oils & Ghee, Beverages, Personal Care), product grid, quick-add button, "Fast Delivery" badge
-4. Register `/grocery` route in `App.tsx` and import GroceryPage
-5. Add Grocery link in Navbar component
-6. Add Grocery category card in LandingPage categories section
+1. Update `types.ts` -- add `status: "pending" | "approved" | "suspended"` to `Vendor`. Keep `isApproved` as derived getter or migrate all consumers.
+2. Update `mockData.ts` -- set `status` on all seeded vendors; add 2-3 vendors with `status: "pending"` to demo the flow.
+3. Update `AppContext.tsx` -- add `rejectVendor`; update `approveVendor` and `suspendVendor` to use `status`; expose `rejectVendor`.
+4. Update `VendorApplyPage.tsx` -- set `status: "pending"` on new vendor object.
+5. Update `AdminDashboard.tsx` -- add Pending sub-tab with badge count, approve/reject buttons; split Approved and Suspended views.
+6. Validate and deploy.

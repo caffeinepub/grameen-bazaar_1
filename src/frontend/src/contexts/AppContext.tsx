@@ -23,6 +23,7 @@ interface AppContextType {
   deleteProduct: (productId: string) => void;
   approveVendor: (vendorId: string) => void;
   suspendVendor: (vendorId: string) => void;
+  rejectVendor: (vendorId: string) => void;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -58,13 +59,31 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const approveVendor = (vendorId: string) => {
     setVendors((prev) =>
-      prev.map((v) => (v.id === vendorId ? { ...v, isApproved: true } : v)),
+      prev.map((v) =>
+        v.id === vendorId
+          ? { ...v, isApproved: true, status: "approved" as const }
+          : v,
+      ),
     );
   };
 
   const suspendVendor = (vendorId: string) => {
     setVendors((prev) =>
-      prev.map((v) => (v.id === vendorId ? { ...v, isApproved: false } : v)),
+      prev.map((v) =>
+        v.id === vendorId
+          ? { ...v, isApproved: false, status: "suspended" as const }
+          : v,
+      ),
+    );
+  };
+
+  const rejectVendor = (vendorId: string) => {
+    setVendors((prev) =>
+      prev.map((v) =>
+        v.id === vendorId
+          ? { ...v, isApproved: false, status: "suspended" as const }
+          : v,
+      ),
     );
   };
 
@@ -89,6 +108,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         deleteProduct,
         approveVendor,
         suspendVendor,
+        rejectVendor,
       }}
     >
       {children}

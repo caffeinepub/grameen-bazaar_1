@@ -13,6 +13,7 @@ export const VENDORS: Vendor[] = [
     village: "Karond",
     isApproved: true,
     isVerified: true,
+    status: "approved",
   },
   {
     id: "v1",
@@ -26,6 +27,7 @@ export const VENDORS: Vendor[] = [
     village: "Rampur Kalan",
     isApproved: true,
     isVerified: true,
+    status: "approved",
   },
   {
     id: "v2",
@@ -39,6 +41,7 @@ export const VENDORS: Vendor[] = [
     village: "Sanganer",
     isApproved: true,
     isVerified: true,
+    status: "approved",
   },
   {
     id: "v3",
@@ -52,6 +55,48 @@ export const VENDORS: Vendor[] = [
     village: "Phulwarisharif",
     isApproved: true,
     isVerified: false,
+    status: "approved",
+  },
+  {
+    id: "v5",
+    shopNameEn: "Sunita Dairy Farm",
+    shopNameHi: "सुनीता डेयरी फार्म",
+    description: "Fresh milk, paneer and ghee from our small dairy in Lucknow.",
+    phone: "+91 96543 21098",
+    state: "Uttar Pradesh",
+    district: "Lucknow",
+    village: "Malihabad",
+    isApproved: false,
+    isVerified: false,
+    status: "pending",
+  },
+  {
+    id: "v6",
+    shopNameEn: "Meena Handloom Weaves",
+    shopNameHi: "मीना हथकरघा बुनाई",
+    description:
+      "Handloom sarees and fabrics woven by women artisans in Chanderi.",
+    phone: "+91 87432 10987",
+    state: "Madhya Pradesh",
+    district: "Ashoknagar",
+    village: "Chanderi",
+    isApproved: false,
+    isVerified: false,
+    status: "pending",
+  },
+  {
+    id: "v7",
+    shopNameEn: "Raju Honey Bees",
+    shopNameHi: "राजू शहद मधुमक्खी",
+    description:
+      "Pure wild honey collected from forest beehives in Chhattisgarh.",
+    phone: "+91 78901 23456",
+    state: "Chhattisgarh",
+    district: "Bastar",
+    village: "Jagdalpur",
+    isApproved: false,
+    isVerified: false,
+    status: "pending",
   },
 ];
 
